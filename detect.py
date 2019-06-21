@@ -52,8 +52,8 @@ def detect(net, frame, directory):
         detections = net.forward()
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-   #         if confidence > 0:
-                #print(directory + ' confidence ' + label + ' ' + str(confidence))
+            if confidence > 0:
+                print(directory + ' confidence ' + label + ' ' + str(confidence))
             if confidence > 0.6 and int(detections[0, 0, i, 1]) in classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
@@ -70,11 +70,9 @@ def detect(net, frame, directory):
                         os.makedirs('video/' + directory + '/' + datetime.now().strftime("%Y-%m-%d"))
                     writer = cv2.VideoWriter('video/' + directory + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',fourcc, frameRate, (w, h), True)
                 writer.write(frame)
-                print('Write first frame', frame.shape[:2])
                 return frame
         tracker = None
         if writer is not None:
-            print('Release writer')
             writer.release()
             writer = None
         return frame
@@ -87,5 +85,5 @@ def detect(net, frame, directory):
     cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
     cv2.putText(frame, label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
     writer.write(frame)
-    print('Write one of next frames', frame.shape[:2])
+    #print('Write one of next frames', frame.shape[:2])
     return frame
