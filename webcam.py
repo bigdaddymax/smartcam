@@ -25,15 +25,21 @@ class threadCamReader(threading.Thread):
         stream = cv2.VideoCapture(self.url)
         while True:#(stream.isOpened()):
             if not self.q.full():
-                ret, frame = stream.read()
-                self.q.put(frame)
+                try:
+                    ret, frame = stream.read()
+                    self.q.put(frame)
+                except:
+                    pass
 
     def frameReader(self):
         stream = urllib.request.urlopen(self.url)
         bts = b''
         while True:
             if not self.q.full():
-                bts += stream.read(1024)
+                try:
+                    bts += stream.read(1024)
+                except:
+                    stream = urllib.request.urlopen(self.url)
                 a = bts.find(b'\xff\xd8')
                 b = bts.find(b'\xff\xd9')
                 if a != -1 and b != -1:

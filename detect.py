@@ -28,6 +28,24 @@ fourcc = cv2.VideoWriter_fourcc(*'H264')
 def loadNet(protocol, model):
     return cv2.dnn.readNetFromCaffe(protocol, model)
 
+def updateTracker(frame, label):
+    global tracker
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    tracker.update(rgb)
+    pos = tracker.get_position()
+    startX = int(pos.left())
+    startY = int(pos.top())
+    endX = int(pos.right())
+    endY = int(pos.bottom())
+    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+    cv2.putText(frame, label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
+    return frame
+
+def startTracking(rect, frame):
+    global tracker
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    tracker.start_track(rgb, rect)
+
 def detect(net, frame, directory):
     global tracker, frameNum, writer, fourcc, label, timestamp
     
@@ -35,7 +53,6 @@ def detect(net, frame, directory):
         return
     (h, w) = frame.shape[:2]
     resizedFrame = cv2.resize(frame, (300, 300))
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     frameNum = frameNum + 1
     
@@ -44,16 +61,18 @@ def detect(net, frame, directory):
     #    duration = time.clock() - timestampsif timestamp != 0.0:
         frameRate = 1/(time.time() - timestamp)
     #print(directory + ': ' + str(time.time() - timestamp))
+    #print(directory + ' ' + str(frameRate) + ' ' + str(frameNum))
     timestamp = time.time()
-    if tracker is None or frameNum == 18:
+    if tracker is None:
+        if frameNum < 5:
+            return frame
         frameNum = 0
         blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
+        
         net.setInput(blob)
         detections = net.forward()
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > 0:
-                print(directory + ' confidence ' + label + ' ' + str(confidence))
             if confidence > 0.6 and int(detections[0, 0, i, 1]) in classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
@@ -64,7 +83,7 @@ def detect(net, frame, directory):
                 cv2.putText(frame, label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 2)
                 tracker = dlib.correlation_tracker()
                 rect = dlib.rectangle(startX, startY, endX, endY)
-                tracker.start_track(rgb, rect)
+                startTracking(rect, frame)
                 if writer is None:
                     if not os.path.exists('video/' + directory + '/' + datetime.now().strftime("%Y-%m-%d")):
                         os.makedirs('video/' + directory + '/' + datetime.now().strftime("%Y-%m-%d"))
@@ -76,14 +95,7 @@ def detect(net, frame, directory):
             writer.release()
             writer = None
         return frame
-    tracker.update(rgb)
-    pos = tracker.get_position()
-    startX = int(pos.left())
-    startY = int(pos.top())
-    endX = int(pos.right()) 
-    endY = int(pos.bottom())
-    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
-    cv2.putText(frame, label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
+    frame = updateTracker(frame, label)
     writer.write(frame)
     #print('Write one of next frames', frame.shape[:2])
     return frame

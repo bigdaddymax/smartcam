@@ -15,10 +15,11 @@ ssdModel    = '../MobileNetSSD_deploy.caffemodel'
 cams = { 
     'cam1': 'http://192.168.0.109:8081',
     'cam2': 'http://192.168.0.108/videostream.cgi?user=cam2&pwd=bla%20bla%20cam',
-    'cam3': 'rtsp://cam3:ux4pOi6GSf@192.168.0.104:88/videoMain'
+    'cam3': 'rtsp://cam3:ux4pOi6GSf@192.168.0.104:88/videoSub'
 }
 
-receiver = imagezmq.ImageHub()
+imagezmqPort = 5555
+ports = []
 
 def prepMultipart(frame):
    jpg = cv2.imencode('.jpg', frame)[1]
@@ -26,20 +27,24 @@ def prepMultipart(frame):
 
 def runDetectionsOnCam(url, camName):
     net = detect.loadNet(ssdProtocol, ssdModel)
-    cam = webcam.threadCamReader(url, 50)
+    cam = webcam.threadCamReader(url, 1)
     cam.start()
-    sender = imagezmq.ImageSender()    
+    sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
     while True:
         frame    = cam.q.get()
         newFrame = detect.detect(net, frame, camName)
-        sender.send_image(camName, newFrame)
-        process  = psutil.Process(os.getpid())
+        if newFrame is not None:
+            sender.send_image(camName, newFrame)
 
 def montage():
     output = {}
+    receiver = imagezmq.ImageHub(open_port='tcp://localhost:5551', block = False)
+    for name, url in cams.items():
+        receiver.connect(open_port = 'tcp://127.0.0.1:555' + name[-1:])
     while True:
         camName, frame = receiver.recv_image()
-        receiver.send_reply(b'OK')
+#        print(camName)
+#        receiver.send_reply(b'OK')
         output[camName] = cv2.resize(frame, (640, 480))
         outFrame = np.concatenate(list(output.values())) 
         yield prepMultipart(outFrame) 
@@ -48,11 +53,14 @@ def montage():
 def application(request):
     return Response(montage(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+def startWeb():
+    run_simple('192.168.0.114', 4000, application)
 
 if __name__ == '__main__':
     for camName, url in cams.items():
         p = Process(target=runDetectionsOnCam, args=(url,camName))
         p.start()
-    run_simple('192.168.0.114', 4000, application)
+    p1 = Process(target=startWeb, args=())
+    p1.start()
 
 
