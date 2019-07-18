@@ -26,13 +26,13 @@ def prepMultipart(frame):
    return b'--frame\r\nContent-Type:image/jpeg\r\n\r\n'+jpg.tostring()+b'\r\n'
 
 def runDetectionsOnCam(url, camName):
-    net = detect.loadNet(ssdProtocol, ssdModel)
+    detector  = detect.detector(camName, ssdProtocol, ssdModel)
     cam = webcam.threadCamReader(url, 1)
     cam.start()
     sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
     while True:
         frame    = cam.q.get()
-        newFrame = detect.detect(net, frame, camName)
+        newFrame = detector.detect(frame)
         if newFrame is not None:
             sender.send_image(camName, newFrame)
 

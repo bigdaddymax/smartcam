@@ -16,22 +16,41 @@ class threadCamReader(threading.Thread):
         self.q   = Queue(queueSize)
 
     def run(self):    
+        """Runs a video stream reader in a separate thread.
+           Depending on URL runs either RTSP or Multipart reader.
+        """
         if self.url.find('rtsp') != -1:
             self.rtspReader()
         self.frameReader()
 
 
     def rtspReader(self):
+        """Runs an RTSP reader:
+           - opens a stream;
+           - reads a fream;
+           - pushes a frame to Queue
+        """
         stream = cv2.VideoCapture(self.url)
-        while True:#(stream.isOpened()):
+        while True:
             if not self.q.full():
                 try:
                     ret, frame = stream.read()
+                    #If a frame is None need to re-init it: 
+                    # - close a stream;
+                    # - reopen it;
+                    # - read frame again
+                    if frame is None:
+                         stream.release()
+                         stream = cv2.VideoCapture(self.url)
+                         ret, frame = stream.read()
                     self.q.put(frame)
                 except:
-                    pass
+                    stream = cv2.VideoCapture(self.url) 
 
     def frameReader(self):
+        """Runs a multipart readers from URL
+           and pushes to Queue
+        """
         stream = urllib.request.urlopen(self.url)
         bts = b''
         while True:
