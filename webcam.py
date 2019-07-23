@@ -19,9 +19,9 @@ class threadCamReader(threading.Thread):
         """Runs a video stream reader in a separate thread.
            Depending on URL runs either RTSP or Multipart reader.
         """
-        if self.url.find('rtsp') != -1:
-            self.rtspReader()
-        self.frameReader()
+        #if self.url.find('rtsp') != -1:
+        self.rtspReader()
+        #self.frameReader()
 
 
     def rtspReader(self):
