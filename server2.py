@@ -1,6 +1,7 @@
 import webcam
 from pprint import pprint
 import detect
+import detect_motion
 import os
 import psutil
 from multiprocessing import Process, Manager
@@ -9,6 +10,8 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.serving import run_simple
 import numpy as np
 import cv2
+import time
+
 ssdProtocol = '../MobileNetSSD_deploy.prototxt'
 ssdModel    = '../MobileNetSSD_deploy.caffemodel'
 
@@ -26,12 +29,27 @@ def prepMultipart(frame):
    return b'--frame\r\nContent-Type:image/jpeg\r\n\r\n'+jpg.tostring()+b'\r\n'
 
 def runDetectionsOnCam(url, camName):
+    newFrame = None
     detector  = detect.detector(camName, ssdProtocol, ssdModel)
-    cam = webcam.threadCamReader(url, 1)
+    #detector = detect_motion.detect_motion()
+    cam = webcam.threadCamReader(url)
     cam.start()
     sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
+    i = 0
+    t = time.time()
+    readFrameID = None
     while True:
-        frame    = cam.q.get()
+        i = i + 1
+        if (i == 20):
+            i = 0
+            t = time.time()
+        frame, frameID    = cam.read()
+        
+        if frame is None or frameID is None or readFrameID == frameID:
+            continue
+
+        readFrameID = frameID
+
         newFrame = detector.detect(frame)
         if newFrame is not None:
             sender.send_image(camName, newFrame)
