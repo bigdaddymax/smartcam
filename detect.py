@@ -21,6 +21,7 @@ class detector:
     frameNum = 0
     fps      = 6 
     timestamp = 0
+    mysql   = None
 
     CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
@@ -80,11 +81,7 @@ class detector:
                     cv2.rectangle(frame, (startX, startY), (endX, endY), self.objColor, 2)
                     cv2.putText(frame, self.label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor, 2)
                     self.startTracker(frame, startX, startY, endX, endY)
-                    if self.writer is None:
-                        if not os.path.exists('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d")):
-                            os.makedirs('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d"))
-                        self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, self.fps, (w, h), True)
-                    self.writer.write(frame)
+                    self.writeFrame(frame)
                     return frame
             self.tracker = None
             if self.writer is not None:
@@ -94,3 +91,27 @@ class detector:
         frame = self.updateTracker(frame)
         self.writer.write(frame)
         return frame
+
+
+    def writeFrame(frame):
+    """Write a frame to a file. If there is no file handler, creates new one.
+       File will be located in video/{camName}/{date}/{time}.avi
+    """
+        if self.writer is None:
+            if not os.path.exists('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d")):
+                os.makedirs('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d"))
+            self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, self.fps, (w, h), True)
+        self.writer.write(frame)
+
+    def detectObject(frame):
+        (h, w) = frame.shape[:2]
+        resizedFrame = cv2.resize(frame, (300, 300))
+        blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
+        self.net.setInput(blob)
+        detections = self.net.forward()
+        for i in np.arange(0, detections.shape[2]):
+            confidence = detections[0, 0, i, 2]
+            if confidence > 0.6 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
+                idx = int(detections[0, 0, i, 1])
+                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (startX, startY, endX, endY) = box.astype("int")
