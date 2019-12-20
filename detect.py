@@ -93,13 +93,14 @@ class detector:
         return frame
 
 
-    def writeFrame(frame):
-    """Write a frame to a file. If there is no file handler, creates new one.
-       File will be located in video/{camName}/{date}/{time}.avi
-    """
+    def writeFrame(self, frame):
+        """Write a frame to a file. If there is no file handler, creates new one.
+          File will be located in video/{camName}/{date}/{time}.avi
+        """
         if self.writer is None:
             if not os.path.exists('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d")):
                 os.makedirs('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d"))
+            (h, w) = frame.shape[:2]
             self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, self.fps, (w, h), True)
         self.writer.write(frame)
 
