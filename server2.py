@@ -22,7 +22,7 @@ camNames = config.get('cameras', 'cameras').split()
 
 cams = { 
     'cam1': 'http://192.168.0.109:8081',
-    'cam2': 'http://192.168.0.108/videostream.cgi?user=cam2&pwd=bla%20bla%20cam',
+    #'cam2': 'http://192.168.0.108/videostream.cgi?user=cam2&pwd=bla%20bla%20cam',
     'cam3': 'rtsp://cam3:ux4pOi6GSf@192.168.0.104:88/videoSub'
 }
 
