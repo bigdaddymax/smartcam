@@ -14,6 +14,7 @@ class threadCamReader:
     def __init__(self, url):
         self.url    = url
         self.stream = cv2.VideoCapture(self.url)
+        print(url)
 #        self.stream.set(cv2.CAP_PROP_FPS, 10)
 
     def start(self):

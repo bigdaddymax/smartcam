@@ -13,9 +13,12 @@ import cv2
 import time
 import threading
 import sys
+import configparser
 
-ssdProtocol = '../MobileNetSSD_deploy.prototxt'
-ssdModel    = '../MobileNetSSD_deploy.caffemodel'
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+camNames = config.get('cameras', 'cameras').split()
 
 cams = { 
     'cam1': 'http://192.168.0.109:8081',
@@ -32,36 +35,38 @@ def prepMultipart(frame):
    return b'--frame\r\nContent-Type:image/jpeg\r\n\r\n'+jpg.tostring()+b'\r\n'
 
 def runDetectionsOnCam(url, camName):
-    newFrame = None
-    detector  = detect.detector(camName, ssdProtocol, ssdModel)
-    ##detector = detect_motion.detect_motion()
-    cam = webcam.threadCamReader(url)
-    cam.start()
-    sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
-    i = 0
-    t = time.time()
-    s = 0
-    readFrameID = None
-    while True:
-        i = i + 1
-        frame, frameID    = cam.read()
+   global config
+
+   newFrame = None
+   detector  = detect.detector(camName, config.get('ssd', 'protocol'), config.get('ssd', 'model'))
+   ##detector = detect_motion.detect_motion()
+   cam = webcam.threadCamReader(url)
+   cam.start()
+   sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
+   i = 0
+   t = time.time()
+   s = 0
+   readFrameID = None
+   while True:
+      i = i + 1
+      frame, frameID    = cam.read()
    
-        if frame is None or frameID is None or readFrameID == frameID:
-            #print(camName + ' ' + str(frameID))        
-            continue
+      if frame is None or frameID is None or readFrameID == frameID:
+         #print(camName + ' ' + str(frameID))        
+         continue
 
-        readFrameID = frameID
+      readFrameID = frameID
 
-        newFrame = detector.detect(frame)
+      newFrame = detector.detect(frame)
         
         
-        if newFrame is not None:
-            s = s + sys.getsizeof(newFrame)
-            if time.time() > t:
-                #print(camName + ' '  + str(round(s / (time.time() - t))/ (1024 * 1024)) + ' Mb/s')       
-                s = 0 
-                t = time.time()
-            sender.send_image(camName, newFrame)
+      if newFrame is not None:
+         s = s + sys.getsizeof(newFrame)
+         if time.time() > t:
+            #print(camName + ' '  + str(round(s / (time.time() - t))/ (1024 * 1024)) + ' Mb/s')       
+            s = 0 
+            t = time.time()
+         sender.send_image(camName, newFrame)
 
 def readToWeb():
     while True:
@@ -87,7 +92,7 @@ def startWeb():
     thread = threading.Thread(target=montage)
     thread.daemon = True
     thread.start()    
-    run_simple('192.168.0.114', 4000, application)
+    run_simple('192.168.0.113', 4000, application)
 
 if __name__ == '__main__':
     for camName, url in cams.items():
@@ -95,5 +100,6 @@ if __name__ == '__main__':
         p.start()
     p1 = Process(target=startWeb, args=())
     p1.start()
+    p1.join()
 
 
