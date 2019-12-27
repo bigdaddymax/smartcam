@@ -12,10 +12,10 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 
 class detector:
     """Class that runs detections and objects tracking for a frame"""
-    tracker = None
-    writer  = None
-    camName = None
-    fourcc  = None   
+    trackers = {} 
+    writer   = None
+    camName  = None
+    fourcc   = None   
     classesOfInterest = [3, 6, 7, 8, 10, 12, 13, 14, 15, 17]
     objColor = {
         3: (0, 255, 0),
@@ -43,10 +43,15 @@ class detector:
         self.net        = cv2.dnn.readNetFromCaffe(protocol, model)
         self.camName    = camName                
 
-    def updateTracker(self, frame):
+    def updateTrackers(self, frame):
+        for idx, tracker in self.trackers.items():
+            frame = self.updateTracker(frame, idx)
+        return frame
+
+    def updateTracker(self, frame, idx):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        self.tracker.update(rgb)
-        pos     = self.tracker.get_position()
+        self.trackers[idx].update(rgb)
+        pos     = self.trackers[idx].get_position()
         startX  = int(pos.left())
         startY  = int(pos.top())
         endX    = int(pos.right())
@@ -55,11 +60,11 @@ class detector:
         cv2.putText(frame, self.label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
         return frame
 
-    def startTracker(self, frame, startX, startY, endX, endY):
-        self.tracker = dlib.correlation_tracker()
+    def startTracker(self, frame, startX, startY, endX, endY, idx):
+        self.trackers[idx] = dlib.correlation_tracker()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         rect = dlib.rectangle(startX, startY, endX, endY)
-        self.tracker.start_track(rgb, rect)
+        self.trackers[idx].start_track(rgb, rect)
 
     def detect(self, frame):
     
@@ -73,19 +78,20 @@ class detector:
         if self.timestamp != 0:
             self.fps = 1/(time.time() - self.timestamp)
         self.timestamp = time.time()
-        if self.tracker is None or self.frameNum == 20:
+        if self.trackers is None or self.frameNum == 20:
             if self.frameNum < 5:
                 return frame
+            self.trackers = {}
             self.frameNum = 0 
             
             detections = self.detectObjects(frame)
             if not detections:
                 return
-            for idx, box in detections:
+            for idx, box in detections.items():
                 self.label = self.CLASSES[idx]
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), self.objColor[idx], 2)
                 cv2.putText(frame, self.label, (box[0], box[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
-                self.startTracker(frame, box[0], box[1], box[2], box[3])
+                self.startTracker(frame, box[0], box[1], box[2], box[3], idx)
                 self.writeFrame(frame)
                 return frame
             self.tracker = None
@@ -93,8 +99,8 @@ class detector:
                 self.writer.release()
                 self.writer = None
             return frame
-        frame = self.updateTracker(frame)
-        self.writer.write(frame)
+        frame = self.updateTrackers(frame)
+        self.writeFrame(frame)
         return frame
 
 
@@ -118,13 +124,13 @@ class detector:
         blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
         self.net.setInput(blob)
         detections = self.net.forward()
-        detected   = {}
+        detected   = dict() 
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
             if confidence > 0.7 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
-                if idx not in detected:
-                    detected[idx] = []
+                #if idx not in detected:
+                #    detected[idx] = []
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-                detected[idx].append(box.astype("int"))
+                detected[idx] = box.astype("int")
         return detected
