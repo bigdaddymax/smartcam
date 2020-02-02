@@ -39,6 +39,7 @@ class threadCamReader:
              # - reopen it;
              # - read frame again
              if frame is None:
+                 print('Need to reinit cam ' + self.url)
                  self.stream.release()
                  self.stream = cv2.VideoCapture(self.url)
                  ret, frame = self.stream.read()

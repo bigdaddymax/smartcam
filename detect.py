@@ -70,34 +70,31 @@ class detector:
     
         if frame is None:
             return
-        (h, w) = frame.shape[:2]
-        resizedFrame = cv2.resize(frame, (300, 300))
-
-        self.frameNum = self.frameNum + 1
-    
+        #Count frames for FPS calculation
+        self.frameNum = self.frameNum + 1    
         if self.timestamp != 0:
             self.fps = 1/(time.time() - self.timestamp)
         self.timestamp = time.time()
-        if self.trackers is None or self.frameNum == 20:
+        
+        #If there were no dlib correlation trackers or we just got 20 frames passed
+        if not self.trackers  or self.frameNum == 20:
             if self.frameNum < 5:
                 return frame
-            self.trackers = {}
             self.frameNum = 0 
             
             detections = self.detectObjects(frame)
             if not detections:
-                return
+                self.trackers = {}
+                return frame
             for idx, box in detections.items():
                 self.label = self.CLASSES[idx]
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), self.objColor[idx], 2)
                 cv2.putText(frame, self.label, (box[0], box[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
                 self.startTracker(frame, box[0], box[1], box[2], box[3], idx)
-                self.writeFrame(frame)
-                return frame
-            self.tracker = None
             if self.writer is not None:
                 self.writer.release()
                 self.writer = None
+            self.writeFrame(frame)
             return frame
         frame = self.updateTrackers(frame)
         self.writeFrame(frame)
@@ -127,7 +124,7 @@ class detector:
         detected   = dict() 
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > 0.7 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
+            if confidence > 0.8 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
                 #if idx not in detected:
                 #    detected[idx] = []
