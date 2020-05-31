@@ -49,4 +49,4 @@ class threadCamReader:
             self.frameID = uuid.uuid4()
 
     def read(self):          
-        return frame, self.frameID
+        return self.frame, self.frameID
