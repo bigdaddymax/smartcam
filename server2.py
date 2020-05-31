@@ -19,12 +19,15 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 camNames = config.get('cameras', 'cameras').split()
+cams     = {}
+for camName in camNames:
+   cams[camName] = config.get(camName, 'url')
 
-cams = { 
-    'cam1': 'http://192.168.0.109:8081',
-    #'cam2': 'http://192.168.0.108/videostream.cgi?user=cam2&pwd=bla%20bla%20cam',
-    'cam3': 'rtsp://cam3:ux4pOi6GSf@192.168.0.104:88/videoSub'
-}
+#cams = { 
+#    'cam1': 'http://192.168.0.109:8081',
+#    #'cam2': 'http://192.168.0.108/videostream.cgi?user=cam2&pwd=bla%20bla%20cam',
+#    'cam3': 'rtsp://cam3:ux4pOi6GSf@192.168.0.104:88/videoSub'
+#}
 
 imagezmqPort = 5555
 ports = []
@@ -43,29 +46,19 @@ def runDetectionsOnCam(url, camName):
    cam = webcam.threadCamReader(url)
    cam.start()
    sender = imagezmq.ImageSender(connect_to='tcp://*:555' + camName[-1:] ,block = False)    
-   i = 0
-   t = time.time()
-   s = 0
    readFrameID = None
    while True:
-      i = i + 1
+      time.sleep(1/10000)
       frame, frameID    = cam.read()
-   
+      #Just skip if we read the same frame or done have a frame at all
       if frame is None or frameID is None or readFrameID == frameID:
          #print(camName + ' ' + str(frameID))        
          continue
-
+      
       readFrameID = frameID
-
-      newFrame = detector.detect(frame)
-        
-        
+      newFrame    = detector.detect(frame)
+                
       if newFrame is not None:
-         s = s + sys.getsizeof(newFrame)
-         if time.time() > t:
-            #print(camName + ' '  + str(round(s / (time.time() - t))/ (1024 * 1024)) + ' Mb/s')       
-            s = 0 
-            t = time.time()
          sender.send_image(camName, newFrame)
 
 def readToWeb():
@@ -79,10 +72,11 @@ def montage():
     for name, url in cams.items():
         receiver.connect(open_port = 'tcp://127.0.0.1:555' + name[-1:])
     while True:
-        camName, frame = receiver.recv_image()
+         time.sleep(1/10000)   
+         camName, frame = receiver.recv_image()
     #    print(camName)
 #        receiver.send_reply(b'OK')
-        output[camName] = cv2.resize(frame, (640, 480))
+         output[camName] = cv2.resize(frame, (640, 480))
 
 @Request.application
 def application(request):
@@ -92,7 +86,7 @@ def startWeb():
     thread = threading.Thread(target=montage)
     thread.daemon = True
     thread.start()    
-    run_simple('192.168.0.113', 4000, application)
+    run_simple('192.168.0.114', 4000, application)
 
 if __name__ == '__main__':
     for camName, url in cams.items():
