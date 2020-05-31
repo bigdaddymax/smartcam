@@ -78,7 +78,7 @@ class detector:
                 return frame
             self.frameNum = 0 
             
-            detections = self.detect(frame)
+            detections = self.detectObjects(frame)
             for idx, box in detections:
                 self.label = self.CLASSES[idx]
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), self.objColor[idx], 2)
@@ -107,7 +107,7 @@ class detector:
             self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, self.fps, (w, h), True)
         self.writer.write(frame)
 
-    def detectObjects(frame):
+    def detectObjects(self, frame):
         """Run objects detection on the frame. In case of detecting objects return list of arrays
            (boxes coordinates), object id and object type
         """
@@ -121,7 +121,7 @@ class detector:
             confidence = detections[0, 0, i, 2]
             if confidence > 0.7 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
-                if detected[idx] is null:
+                if idx not in detected     :
                     detected[idx] = []
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 detected[idx].append(box.astype("int"))
