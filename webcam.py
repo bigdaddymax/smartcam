@@ -28,7 +28,6 @@ class threadCamReader:
         i = 0
         t = time.time()
         while True:
-<<<<<<< HEAD
             i = i + 1
             ret, frame = self.stream.read()
             if (i == 20):
@@ -48,25 +47,6 @@ class threadCamReader:
                 text = text + ' FPS: ' + str(round(self.fps))
             self.frame =  cv2.putText(frame, text, (10, int(self.stream.get(cv2.CAP_PROP_FRAME_HEIGHT)) - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2)
             self.frameID = uuid.uuid4()
-=======
-             i = i + 1
-             ret, frame = self.stream.read()
-             if (i == 20):
-                 self.fps = 20/(time.time() - t)
-                 t = time.time()
-                 i = 0
-             #If a frame is None need to re-init it: 
-             # - close a stream;
-             # - reopen it;
-             # - read frame again
-             if frame is None:
-                 print('Need to reinit cam ' + self.url)
-                 self.stream.release()
-                 self.stream = cv2.VideoCapture(self.url)
-                 ret, frame = self.stream.read()
-             self.frame = frame
-             self.frameID = uuid.uuid4()
->>>>>>> 949fb51aadab410dd1c5517966aca348aca1e8d6
 
     def read(self):          
         return frame, self.frameID
