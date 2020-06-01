@@ -94,7 +94,7 @@ class detector:
             if self.writer is not None:
                 self.writer.release()
                 self.writer = None
-            self.writeFrame(frame)
+            self.writeFrame(frame, fps)
             return frame
         frame = self.updateTrackers(frame)
         self.writeFrame(frame, fps)
