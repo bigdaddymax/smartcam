@@ -66,7 +66,7 @@ class detector:
         rect = dlib.rectangle(startX, startY, endX, endY)
         self.trackers[idx].start_track(rgb, rect)
 
-    def detect(self, frame):
+    def detect(self, frame, fps):
     
         if frame is None:
             return
@@ -97,11 +97,11 @@ class detector:
             self.writeFrame(frame)
             return frame
         frame = self.updateTrackers(frame)
-        self.writeFrame(frame)
+        self.writeFrame(frame, fps)
         return frame
 
 
-    def writeFrame(self, frame):
+    def writeFrame(self, frame, fps):
         """Write a frame to a file. If there is no file handler, creates new one.
           File will be located in video/{camName}/{date}/{time}.avi
         """
@@ -109,7 +109,7 @@ class detector:
             if not os.path.exists('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d")):
                 os.makedirs('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d"))
             (h, w) = frame.shape[:2]
-            self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, self.fps, (w, h), True)
+            self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, fps, (w, h), True)
         self.writer.write(frame)
 
     def detectObjects(self, frame):
