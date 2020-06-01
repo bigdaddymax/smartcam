@@ -124,7 +124,7 @@ class detector:
         detected   = dict() 
         for i in np.arange(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            if confidence > 0.8 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
+            if confidence > 0.95 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 detected[idx] = box.astype("int")
