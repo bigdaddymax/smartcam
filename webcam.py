@@ -9,7 +9,7 @@ class threadCamReader:
     frame       = None
     frameID     = None
     stream      = None
-    fps         = 0    
+    fps         = 1    
 
     def __init__(self, url):
         self.url    = url
