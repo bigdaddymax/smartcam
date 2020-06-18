@@ -39,7 +39,7 @@ class detector:
         "sofa", "train", "tvmonitor"]
 
     def __init__(self, camName, protocol, model):
-        self.fourcc     = cv2.VideoWriter_fourcc(*'H264')
+        self.fourcc     = cv2.VideoWriter_fourcc(*'MJPG')
         self.net        = cv2.dnn.readNetFromCaffe(protocol, model)
         self.camName    = camName                
 
@@ -88,9 +88,9 @@ class detector:
                 return frame
             for idx, box in detections.items():
                 self.label = self.CLASSES[idx]
-                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), self.objColor[idx], 2)
-                cv2.putText(frame, self.label, (box[0], box[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
-                self.startTracker(frame, box[0], box[1], box[2], box[3], idx)
+                cv2.rectangle(frame, (box['box'][0], box['box'][1]), (box['box'][2], box['box'][3]), self.objColor[idx], 2)
+                cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
+                self.startTracker(frame, box['box'][0], box['box'][1], box['box'][2], box['box'][3], idx)
             if self.writer is not None:
                 self.writer.release()
                 self.writer = None
@@ -127,5 +127,5 @@ class detector:
             if confidence > 0.95 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-                detected[idx] = box.astype("int")
+                detected[idx] = {'box':box.astype("int"), 'confidence': confidence}
         return detected
