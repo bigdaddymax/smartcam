@@ -85,15 +85,15 @@ class detector:
             detections = self.detectObjects(frame)
             if not detections:
                 self.trackers = {}
+                if self.writer is not None:
+                    self.writer.release()
+                    self.writer = None
                 return frame
             for idx, box in detections.items():
                 self.label = self.CLASSES[idx]
                 cv2.rectangle(frame, (box['box'][0], box['box'][1]), (box['box'][2], box['box'][3]), self.objColor[idx], 2)
                 cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
                 self.startTracker(frame, box['box'][0], box['box'][1], box['box'][2], box['box'][3], idx)
-            if self.writer is not None:
-                self.writer.release()
-                self.writer = None
             self.writeFrame(frame, fps)
             return frame
         frame = self.updateTrackers(frame)
