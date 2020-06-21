@@ -77,9 +77,9 @@ class detector:
         self.timestamp = time.time()
         
         #If there were no dlib correlation trackers or we just got 20 frames passed
-        if not self.trackers  or self.frameNum == 20:
-            if self.frameNum < 5:
-                return frame
+        if not self.trackers  or self.frameNum == 10:
+            # if self.frameNum < 5:
+            #     return frame
             self.frameNum = 0 
             
             detections = self.detectObjects(frame)
