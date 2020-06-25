@@ -31,6 +31,7 @@ class detector:
     frameNum    = 0
     fps         = 6 
     timestamp   = 0
+    timesMissed = 0
     mysql       = None
 
     CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
@@ -84,6 +85,13 @@ class detector:
             
             detections = self.detectObjects(frame)
             if not detections:
+                #In case object detection missed the object, give it another chance (two chances, actually)
+                if self.trackers is not None and self.timesMissed < 2:
+                    self.timesMissed = self.timesMissed + 1
+                    frame = self.updateTrackers(frame)
+                    return frame
+                
+                self.timesMissed = 0                
                 self.trackers = {}
                 if self.writer is not None:
                     self.writer.release()
