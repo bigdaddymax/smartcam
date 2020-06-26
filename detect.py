@@ -85,8 +85,8 @@ class detector:
             
             detections = self.detectObjects(frame)
             if not detections:
-                #In case object detection missed the object, give it another chance (two chances, actually)
-                if self.trackers is not None and self.timesMissed < 2:
+                #In case object detection missed the object, give it another chance (5 chances, actually)
+                if self.trackers is not None and self.timesMissed < 5:
                     self.timesMissed = self.timesMissed + 1
                     frame = self.updateTrackers(frame)
                     return frame
@@ -125,7 +125,10 @@ class detector:
            (boxes coordinates), object id and object type
         """
         (h, w) = frame.shape[:2]
-        resizedFrame = cv2.resize(frame, (300, 300))
+        fx = 300
+        fy = round(300 * w/ h)
+        resizedFrame = cv2.resize(frame, (fx, fy))
+        resizedFrame = cv2.copyMakeBorder(resizedFrame, resizedFrame, 300 - fy, 0, 0, 0, cv2.BORDER_CONSTANT, 100)
         blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
         self.net.setInput(blob)
         detections = self.net.forward()
