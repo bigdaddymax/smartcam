@@ -128,7 +128,7 @@ class detector:
         fx = 300
         fy = round(300 * w/ h)
         resizedFrame = cv2.resize(frame, (fx, fy))
-        resizedFrame = cv2.copyMakeBorder(resizedFrame, resizedFrame, 300 - fy, 0, 0, 0, cv2.BORDER_CONSTANT, 100)
+        resizedFrame = cv2.copyMakeBorder(resizedFrame, resizedFrame, 300 - fy, 0, 0, 0, cv2.BORDER_CONSTANT, (100, 100, 100))
         blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
         self.net.setInput(blob)
         detections = self.net.forward()
