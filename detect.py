@@ -126,7 +126,7 @@ class detector:
         """
         (h, w) = frame.shape[:2]
         fx = 300
-        fy = round(300 * w/ h)
+        fy = round(300 * h/ w)
         resizedFrame = cv2.resize(frame, (fx, fy))
         resizedFrame = cv2.copyMakeBorder(resizedFrame, resizedFrame, 300 - fy, 0, 0, 0, cv2.BORDER_CONSTANT, (100, 100, 100))
         blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
@@ -137,6 +137,6 @@ class detector:
             confidence = detections[0, 0, i, 2]
             if confidence > 0.95 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
-                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                box = detections[0, 0, i, 3:7] * np.array([w, round(h * (300/fy)), w, round(h * 300/fy)])
                 detected[idx] = {'box':box.astype("int"), 'confidence': confidence}
         return detected
