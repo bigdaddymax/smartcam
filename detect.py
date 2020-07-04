@@ -58,7 +58,7 @@ class detector:
         endX    = int(pos.right())
         endY    = int(pos.bottom())
         cv2.rectangle(frame, (startX, startY), (endX, endY), self.objColor[idx], 2)
-        textSize, baseline = cv2.getTextSize( self.label + ' ' + str(box['confidence']), cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
+        textSize, baseline = cv2.getTextSize( self.label , cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
         cv2.rectangle(frame, (startX, startY) , (startX + textSize[0], startY - textSize[1]), self.objColor[idx], -1)
         cv2.putText(frame, self.label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
         return frame
