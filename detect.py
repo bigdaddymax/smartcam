@@ -60,7 +60,7 @@ class detector:
         cv2.rectangle(frame, (startX, startY), (endX, endY), self.objColor[idx], 2)
         textSize, baseline = cv2.getTextSize( self.label , cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
         cv2.rectangle(frame, (startX, startY) , (startX + textSize[0], startY - 17 - textSize[1]), self.objColor[idx], -1)
-        cv2.putText(frame, self.label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
+        cv2.putText(frame, self.label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         return frame
 
     def startTracker(self, frame, startX, startY, endX, endY, idx):
@@ -104,7 +104,7 @@ class detector:
                 cv2.rectangle(frame, (box['box'][0], box['box'][1]), (box['box'][2], box['box'][3]), self.objColor[idx], 2)
                 textSize, baseline = cv2.getTextSize( self.label + ' ' + str(box['confidence']), cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
                 cv2.rectangle(frame, (box['box'][0], box['box'][1]) , (box['box'][0] + textSize[0], box['box'][1] - textSize[1] - 17), self.objColor[idx], -1)
-                cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
+                cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
                 self.startTracker(frame, box['box'][0], box['box'][1], box['box'][2], box['box'][3], idx)
             self.writeFrame(frame, fps)
             return frame
