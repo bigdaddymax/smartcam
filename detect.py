@@ -100,7 +100,9 @@ class detector:
             for idx, box in detections.items():
                 self.label = self.CLASSES[idx]
                 cv2.rectangle(frame, (box['box'][0], box['box'][1]), (box['box'][2], box['box'][3]), self.objColor[idx], 2)
-                cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
+                textSize = cv2.getTextSize( self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, self.objColor[idx], 2)
+                cv2.rectangle(frame, box['box'][0], box['box'][1] , textSize[0], textSize[1], self.objColor[idx], -1)
+                cv2.putText(frame, self.label + ' ' + str(box['confidence']), (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
                 self.startTracker(frame, box['box'][0], box['box'][1], box['box'][2], box['box'][3], idx)
             self.writeFrame(frame, fps)
             return frame
@@ -127,10 +129,11 @@ class detector:
         (h, w) = frame.shape[:2]
         fx = 300
         fy = 300
-        # fy = round(300 * h/ w)
-        resizedFrame = cv2.resize(frame, (fx, fy))
-        #resizedFrame = cv2.copyMakeBorder(resizedFrame, 300 - fy, 0, 0, 0, cv2.BORDER_CONSTANT, (100, 100, 100))
-        blob   = cv2.dnn.blobFromImage(resizedFrame,  0.007843, (300, 300), (127, 127, 127), False)
+        mean   = cv2.mean(frame)
+        
+        #Make input image square to avoid geometric distortions
+        frame  = cv2.copyMakeBorder(frame, 0, w - h, 0, 0, (mean))
+        blob   = cv2.dnn.blobFromImage(frame,  1/max(mean), (fx, fy), mean, False)
         self.net.setInput(blob)
         detections = self.net.forward()
         detected   = dict() 
@@ -138,6 +141,11 @@ class detector:
             confidence = detections[0, 0, i, 2]
             if confidence > 0.95 and int(detections[0, 0, i, 1]) in self.classesOfInterest:
                 idx = int(detections[0, 0, i, 1])
-                box = detections[0, 0, i, 3:7] * np.array([w, round(h * (300/fy)), w, round(h * 300/fy)])
+                box = detections[0, 0, i, 3:7] * np.array([w, w, w, w])
                 detected[idx] = {'box':box.astype("int"), 'confidence': confidence}
         return detected
+
+    def detectObjectsTensor(self, frame):
+        """Run objects detection on the frame using TensorFlow
+        """
+        
