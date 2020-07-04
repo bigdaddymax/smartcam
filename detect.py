@@ -132,7 +132,7 @@ class detector:
         mean   = cv2.mean(frame)
         
         #Make input image square to avoid geometric distortions
-        frame  = cv2.copyMakeBorder(frame, 0, w - h, 0, 0, round(max(mean)))
+        frame  = cv2.copyMakeBorder(frame, 0, w - h, 0, 0, cv2.BORDER_CONSTANT, round(max(mean)))
         blob   = cv2.dnn.blobFromImage(frame,  1/max(mean), (fx, fy), mean, False)
         self.net.setInput(blob)
         detections = self.net.forward()
