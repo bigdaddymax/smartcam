@@ -75,7 +75,7 @@ def montage():
          time.sleep(1/10000)   
          camName, frame = receiver.recv_image()
          (h, w) = frame.shape[:2]
-         frame = cv2.copyMakeBorder(frame, round((w - h) / 2), round((w - h) / 2), 0, 0, (0,0,0,0))
+         frame = cv2.copyMakeBorder(frame, round((w - h) / 2), round((w - h) / 2), 0, 0, cv2.BORDER_CONSTANT,  (0,0,0,0))
          output[camName] = cv2.resize(frame, (640, 480))
 
 @Request.application
