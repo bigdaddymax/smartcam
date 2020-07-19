@@ -118,10 +118,10 @@ class detector:
     def updateFrame(self, frame, box, label, color):
         """Draw a box around the detected object
         """
-        cv2.rectangle(frame, (box['box'][0], box['box'][1]), (box['box'][2], box['box'][3]), color, 2)
+        cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), color, 2)
         textSize, baseline = cv2.getTextSize( label, cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
-        cv2.rectangle(frame, (box['box'][0], box['box'][1]) , (box['box'][0] + textSize[0], box['box'][1] - textSize[1] - 17), color, -1)
-        cv2.putText(frame, label, (box['box'][0], box['box'][1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        cv2.rectangle(frame, (box[0], box[1]) , (box[0] + textSize[0], box[1] - textSize[1] - 17), color, -1)
+        cv2.putText(frame, label, (box[0], box[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         return frame
     
 
