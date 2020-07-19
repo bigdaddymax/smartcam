@@ -98,7 +98,7 @@ class detector:
                     return frame
 
                 self.timesMissed = 0
-                self.trackers = {}
+                self.trackers = []
                 if self.writer is not None:
                     self.writer.release()
                     self.writer = None
