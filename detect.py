@@ -51,7 +51,7 @@ class detector:
 
     def updateTracker(self, frame, trackerData):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        traceker = trackerData['tracker']
+        tracker = trackerData['tracker']
         color    = trackerData['color']
         label    = trackerData['label']
         tracker.update(rgb)
