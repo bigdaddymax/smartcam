@@ -60,10 +60,7 @@ class detector:
         startY  = int(pos.top())
         endX    = int(pos.right())
         endY    = int(pos.bottom())
-        cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
-        textSize, baseline = cv2.getTextSize( label , cv2.FONT_HERSHEY_SIMPLEX, 0.45, 2)
-        cv2.rectangle(frame, (startX, startY) , (startX + textSize[0], startY - 17 - textSize[1]), color, -1)
-        cv2.putText(frame, label, (startX, startY - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        self.updateFrame(frame, [startX, startY, endX, endY], label, color)
         return frame
 
     def startTracker(self, frame, box, label, color):
@@ -103,6 +100,7 @@ class detector:
                     self.writer.release()
                     self.writer = None
                 return frame
+            self.trackers = []
             for detection in detections:
                 label = self.CLASSES[detection['idx']] + ' ' + str(detection['confidence'])
                 box   = detection['box']
