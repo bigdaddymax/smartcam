@@ -89,7 +89,7 @@ class detector:
             detections = self.detectObjects(frame)
             if not detections:
                 #In case object detection missed the object, give it another chance (5 chances, actually)
-                if self.trackers is not None and self.timesMissed < 5:
+                if self.trackers is not None and self.timesMissed < 15:
                     self.timesMissed = self.timesMissed + 1
                     frame = self.updateTrackers(frame)
                     return frame

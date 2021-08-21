@@ -56,7 +56,7 @@ def runDetectionsOnCam(url, camName):
          continue
       
       readFrameID = frameID
-      newFrame    = detector.detect(frame, config.get(camName, 'fps'))
+      newFrame    = detector.detect(frame, int(config.get(camName, 'fps')))
                 
       if newFrame is not None:
          sender.send_image(camName, newFrame)
