@@ -86,7 +86,7 @@ def startWeb():
     thread = threading.Thread(target=montage)
     thread.daemon = True
     thread.start()    
-    run_simple('192.168.0.114', 4000, application)
+    run_simple('0.0.0.0', 4000, application)
 
 if __name__ == '__main__':
     for camName, url in cams.items():
