@@ -131,7 +131,7 @@ class detector:
             if not os.path.exists('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d")):
                 os.makedirs('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d"))
             (h, w) = frame.shape[:2]
-            self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, fps, (w, h), True)
+            self.writer = cv2.VideoWriter('video/' + self.camName + '/' + datetime.now().strftime("%Y-%m-%d") + '/' + datetime.now().strftime("%H-%M-%S")+ '.avi',self.fourcc, int(fps), (w, h), True)
         self.writer.write(frame)
 
     def detectObjects(self, frame):
