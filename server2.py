@@ -1,19 +1,17 @@
-import webcam
-from pprint import pprint
-import detect
-import detect_motion
-import os
-import psutil
-from multiprocessing import Process, Manager
-import imagezmq
-from werkzeug.wrappers import Request, Response
-from werkzeug.serving import run_simple
-import numpy as np
-import cv2
-import time
-import threading
-import sys
 import configparser
+import threading
+import time
+from multiprocessing import Process
+
+import cv2
+import numpy as np
+import psutil
+from werkzeug.serving import run_simple
+from werkzeug.wrappers import Request, Response
+
+import detect
+import imagezmq
+import webcam
 
 config = configparser.ConfigParser()
 config.read('config.ini')
